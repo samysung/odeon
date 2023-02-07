@@ -28,7 +28,7 @@ from odeon.models.core.models import ModelRegistry
 DataLoader.__module__ = "torch.utils.data"  # Sphinx bug
 
 
-@ModelRegistry.register_class(cl=pl.LightningModule, name='change_unet', aliases=['c_unet'])
+@ModelRegistry.register_class(name='change_unet', aliases=['c_unet'])
 class ChangeUnet(pl.LightningModule):
     """
 
