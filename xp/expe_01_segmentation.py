@@ -16,6 +16,8 @@ print('after load')
 #root: str = '/media/HP-2007S005-data'
 #root_dir: str = os.path.join(root, 'gers/change_dataset/patches')
 root: str = '/home/NGonthier/Documents/Detection_changement/data/'
+if not os.path.exists(root):
+    root: str = '/home/dl/gonthier/data/'
 root_dir: str = os.path.join(root, 'gers/change/patches')
 fold_nb: int = 0
 fold: str = f'fold-{fold_nb}'
@@ -43,8 +45,8 @@ print('after model')
 path_model_checkpoint = ''
 save_top_k_models = 5
 path_model_log = ''
-accelerator = 'cpu'
-#accelerator = 'gpu'
+#accelerator = 'cpu'
+accelerator = 'gpu'
 
 
 def main():
