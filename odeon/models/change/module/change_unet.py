@@ -209,7 +209,6 @@ class ChangeUnet(pl.LightningModule):
         -------
 
         """
-        print(batch)
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
         loss = self.loss(y_hat, y.float())
@@ -218,21 +217,21 @@ class ChangeUnet(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.val_metrics(y_hat_hard, y)
         """
-                if batch_idx < 10:
-                    try:
-                        datamodule = self.trainer.datamodule  # type: ignore[attr-defined]
-                        batch["prediction"] = y_hat_hard
-                        for key in ["image", "mask", "prediction"]:
-                            batch[key] = batch[key].cpu()
-                        sample = batch[0]
-                        fig = datamodule.plot(sample)
-                        summary_writer = self.logger.experiment  # type: ignore[union-attr]
-                        summary_writer.add_figure(
-                            f"image/{batch_idx}", fig, global_step=self.global_step
-                        )
-                        plt.close()
-                    except AttributeError:
-                        pass
+        if batch_idx < 10:
+            try:
+                datamodule = self.trainer.datamodule  # type: ignore[attr-defined]
+                batch["prediction"] = y_hat_hard
+                for key in ["image", "mask", "prediction"]:
+                    batch[key] = batch[key].cpu()
+                sample = batch[0]
+                fig = datamodule.plot(sample)
+                summary_writer = self.logger.experiment  # type: ignore[union-attr]
+                summary_writer.add_figure(
+                    f"image/{batch_idx}", fig, global_step=self.global_step
+                )
+                plt.close()
+            except AttributeError:
+                pass
         """
         return {'val_loss': cast(Tensor, loss)}
 
@@ -265,7 +264,7 @@ class ChangeUnet(pl.LightningModule):
         """
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
-        loss = self.loss(y_hat, y)
+        loss = self.loss(y_hat, y.float())
         # by default, the test and validation steps only log per *epoch*
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
