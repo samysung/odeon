@@ -21,6 +21,8 @@ from torchmetrics.classification import (  # type: ignore[attr-defined]
 from pytorch_lightning.loggers import TensorBoardLogger
 import io
 import matplotlib.pyplot as plt
+import PIL.Image
+from torchvision.transforms import ToTensor
 
 from odeon.core.types import OdnMetric
 from odeon.models.change.arch.change_unet import FCSiamConc, FCSiamDiff
@@ -220,10 +222,10 @@ class ChangeUnet(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.val_metrics(y_hat_hard, y)
         if batch_idx == 0: # Only on batch 0 TODO : need random samples
-            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step)
+            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='val')
         return {'val_loss': cast(Tensor, loss)}
 
-    def log_tb_images(self, viz_batch, step) -> None:
+    def log_tb_images(self, viz_batch, step, set='') -> None:
 
         # Get tensorboard logger
         tb_logger = None
@@ -239,7 +241,7 @@ class ChangeUnet(pl.LightningModule):
             # Create one single image with the 4 elements
             figure = self.image_line([T0, T1, y_true, y_pred])
             image = self.plot_to_image(figure)
-            tb_logger.add_image(f"Image {batch_idx}_{img_idx}/Results", image, step)
+            tb_logger.add_image(f"Image {batch_idx}_{img_idx}_{set}", image, step)
 
     def image_line(self, list_images):
         """Return a 5x5 grid of the MNIST images as a matplotlib figure."""
@@ -266,8 +268,6 @@ class ChangeUnet(pl.LightningModule):
         plt.savefig(buf, format='png')
         plt.close(figure)
         buf.seek(0)
-        import PIL.Image
-        from torchvision.transforms import ToTensor
         image = PIL.Image.open(buf)
         image = ToTensor()(image) #.unsqueeze(0)
         return image
@@ -306,7 +306,7 @@ class ChangeUnet(pl.LightningModule):
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
         if batch_idx == 0: # Only on batch 0 TODO : need random samples
-            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step)
+            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='test')
         return {'test_loss': cast(Tensor, loss)}
 
     def test_epoch_end(self, outputs: Any) -> None:
