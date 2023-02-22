@@ -12,7 +12,6 @@ sys.path.append('../odeon')
 from odeon.data.data_module import Input
 from odeon.models.change.module.change_unet import ChangeUnet
 
-print('after load')
 #root: str = '/media/HP-2007S005-data'
 #root_dir: str = os.path.join(root, 'gers/change_dataset/patches')
 root: str = '/home/NGonthier/Documents/Detection_changement/data/'
@@ -39,16 +38,11 @@ val_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "
 
 input = Input(fit_params=fit_params,
               validate_params=val_params)
-print('before model')
 model = ChangeUnet(model='fc_siam_conc')
-print('after model')
 path_model_checkpoint = ''
 save_top_k_models = 5
 path_model_log = ''
-#accelerator = 'cpu'
-accelerator = 'gpu'
-
-
+accelerator = 'gpu' # 'cpu'
 def main():
 
     lr_monitor = LearningRateMonitor(logging_interval="step")
@@ -59,12 +53,8 @@ def main():
                                        monitor='val_iou')
     callbacks = [lr_monitor, model_checkpoint]
     logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log)
-    print('before trainer')
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator)
-    print('after trainer')
     trainer.fit(model=model, datamodule=input)
-    print('after fit')
-
 
 if __name__ == '__main__':
 
