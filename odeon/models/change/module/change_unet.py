@@ -209,7 +209,6 @@ class ChangeUnet(pl.LightningModule):
         -------
 
         """
-        print(batch)
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
         loss = self.loss(y_hat, y.float())
@@ -265,7 +264,7 @@ class ChangeUnet(pl.LightningModule):
         """
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
-        loss = self.loss(y_hat, y)
+        loss = self.loss(y_hat, y.float())
         # by default, the test and validation steps only log per *epoch*
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
