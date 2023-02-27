@@ -61,7 +61,7 @@ accelerator = 'gpu' # 'cpu'
 limit_train_batches = 10
 limit_val_batches = 10
 limit_test_batches = 10
-max_epochs = 50
+max_epochs = 1000
 check_val_every_n_epoch = 5
 log_every_n_steps = 5
 def main():
