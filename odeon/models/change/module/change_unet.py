@@ -246,7 +246,7 @@ class ChangeUnet(pl.LightningModule):
     def image_line(self, list_images):
         """Return a 5x5 grid of the MNIST images as a matplotlib figure."""
         # Create a figure to contain the plot.
-        figure = plt.figure(figsize=(16, 5))
+        figure = plt.figure(figsize=(8, 3))
         list_titles = ['T0', 'T1', 'GroundTruth', 'Prediction']
         for i, title in enumerate(list_titles):
             # Start next subplot.
