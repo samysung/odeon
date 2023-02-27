@@ -25,7 +25,7 @@ fold: str = f'fold-{fold_nb}'
 root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
 # The images here are not normalized between 0 and 1 should we do it ?
-batch_size = 32
+batch_size = 8
 fit_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}},
@@ -59,7 +59,7 @@ path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
 accelerator = 'gpu' # 'cpu'
-max_epochs = 250
+max_epochs = 50
 check_val_every_n_epoch = 5
 def main():
     seed_everything(42, workers=True)
