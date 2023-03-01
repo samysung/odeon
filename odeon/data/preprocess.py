@@ -14,7 +14,7 @@ from odeon.core.types import URI
 
 logger = getLogger(__name__)
 MEAN_DEFAULT_VALUE = 0.0
-STD_DEFAULT_VALUE = 0.5
+STD_DEFAULT_VALUE = 1.0
 
 
 class UniversalPreProcessor:
@@ -111,7 +111,7 @@ class UniversalPreProcessor:
         if mean is None or std is None:
 
             # apply centering between 0 and 1
-            # to apply centering between -1 and 1, replace change MEAN_DEFAULT_VALUE value to 0.5
+            # to apply centering between -1 and 1, replace change MEAN_DEFAULT_VALUE and STD_DEFAULT_VALUE values to 0.5
             mean = [MEAN_DEFAULT_VALUE]
             mean = np.repeat(mean, raster.shape[0])
             std = [STD_DEFAULT_VALUE]
