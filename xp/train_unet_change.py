@@ -3,6 +3,8 @@ import os
 from pytorch_lightning import Trainer
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks.early_stopping import EarlyStopping
+
 from pytorch_lightning.callbacks.model_checkpoint import ModelCheckpoint
 from pytorch_lightning import seed_everything
 
@@ -59,23 +61,25 @@ path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
 accelerator = 'gpu' # 'cpu'
-max_epochs = 50
+max_epochs = 200
 check_val_every_n_epoch = 5
 def main():
     seed_everything(42, workers=True)
 
-    lr_monitor = LearningRateMonitor(logging_interval="step")
+    lr_monitor = LearningRateMonitor(logging_interval="step") # Mettre un learning rate sinusoidale ou bien comme dans le papier de Rodrigo
     model_checkpoint = ModelCheckpoint(dirpath=path_model_checkpoint,
                                        save_top_k=save_top_k_models,
                                        filename=model_name+'epoch-{epoch}-loss-{val_bin_iou:.2f}',
                                        mode="max",
                                        monitor='val_bin_iou')
-    callbacks = [lr_monitor, model_checkpoint]
+    early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=40, check_finite=True)
+    #Faire un callback pour sauver les images
+    callbacks = [lr_monitor, model_checkpoint, early_stop]
     logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log)
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs)
     trainer.fit(model=model, datamodule=input)
     trainer.validate(model=model, datamodule=input) # Where are stored the values ?
-    trainer.test(model=model, datamodule=input)
+    #trainer.test(model=model, datamodule=input) # Besoin de faire un vrai test set separé !
     # Qualitative eval ?
 
 
