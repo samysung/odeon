@@ -18,6 +18,11 @@ from torchmetrics import MetricCollection
 from torchmetrics.classification import (  # type: ignore[attr-defined]
     BinaryAccuracy, BinaryF1Score, BinaryJaccardIndex, BinaryPrecision,
     BinaryRecall, BinarySpecificity)
+from pytorch_lightning.loggers import TensorBoardLogger
+import io
+import matplotlib.pyplot as plt
+import PIL.Image
+from torchvision.transforms import ToTensor
 
 from odeon.core.types import OdnMetric
 from odeon.models.change.arch.change_unet import FCSiamConc, FCSiamDiff
@@ -196,7 +201,7 @@ class ChangeUnet(pl.LightningModule):
         self.log_dict(self.train_metrics.compute())
         self.train_metrics.reset()
 
-    def validation_step(self, batch: Dict[str, Any], *args: Any, **kwargs: Any) -> Any:
+    def validation_step(self, batch: Dict[str, Any], batch_idx: int, *args: Any, **kwargs: Any) -> Any:
         """
 
         Parameters
@@ -209,7 +214,6 @@ class ChangeUnet(pl.LightningModule):
         -------
 
         """
-        print(batch)
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
         loss = self.loss(y_hat, y.float())
@@ -217,24 +221,56 @@ class ChangeUnet(pl.LightningModule):
         # `log_every_n_steps` is a parameter to the `Trainer` object
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.val_metrics(y_hat_hard, y)
-        """
-                if batch_idx < 10:
-                    try:
-                        datamodule = self.trainer.datamodule  # type: ignore[attr-defined]
-                        batch["prediction"] = y_hat_hard
-                        for key in ["image", "mask", "prediction"]:
-                            batch[key] = batch[key].cpu()
-                        sample = batch[0]
-                        fig = datamodule.plot(sample)
-                        summary_writer = self.logger.experiment  # type: ignore[union-attr]
-                        summary_writer.add_figure(
-                            f"image/{batch_idx}", fig, global_step=self.global_step
-                        )
-                        plt.close()
-                    except AttributeError:
-                        pass
-        """
+        if batch_idx == 0: # Only on batch 0 TODO : need random samples
+            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='val')
         return {'val_loss': cast(Tensor, loss)}
+
+    def log_tb_images(self, viz_batch, step, set='') -> None:
+
+        # Get tensorboard logger
+        tb_logger = None
+        for logger in self.trainer.loggers:
+            if isinstance(logger, TensorBoardLogger):
+                tb_logger = logger.experiment
+                break
+
+        if tb_logger is None:
+            raise ValueError('TensorBoard Logger not found')
+
+        for img_idx, (T0, T1, y_true, y_pred, batch_idx) in enumerate(zip(*viz_batch)):
+            # Create one single image with the 4 elements
+            figure = self.image_line([T0, T1, y_true, y_pred])
+            image = self.plot_to_image(figure)
+            tb_logger.add_image(f"Image {batch_idx}_{img_idx}_{set}", image, step)
+
+    def image_line(self, list_images):
+        """Return a 5x5 grid of the MNIST images as a matplotlib figure."""
+        # Create a figure to contain the plot.
+        figure = plt.figure(figsize=(8, 3))
+        list_titles = ['T0', 'T1', 'GroundTruth', 'Prediction']
+        for i, title in enumerate(list_titles):
+            # Start next subplot.
+            plt.subplot(1, 4, i + 1, title=title)
+            plt.xticks([])
+            plt.yticks([])
+            plt.grid(False)
+            img = list_images[i].cpu().permute(1, 2, 0)
+            plt.imshow(img, interpolation='nearest')
+            plt.tight_layout()
+
+        return figure
+
+    def plot_to_image(self, figure):
+        """Converts the matplotlib plot specified by 'figure' to a PNG image and
+        returns it. The supplied figure is closed and inaccessible after this call."""
+        # Save the plot to a PNG in memory.
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        plt.close(figure)
+        buf.seek(0)
+        image = PIL.Image.open(buf)
+        image = ToTensor()(image) #.unsqueeze(0)
+        return image
 
     def validation_epoch_end(self, outputs: Any) -> None:
         """
@@ -250,7 +286,7 @@ class ChangeUnet(pl.LightningModule):
         self.log_dict(self.val_metrics.compute())
         self.val_metrics.reset()
 
-    def test_step(self, batch: Dict[str, Any], *args: Any, **kwargs: Any) -> Any:
+    def test_step(self, batch: Dict[str, Any], batch_idx: int, *args: Any, **kwargs: Any) -> Any:
         """
 
         Parameters
@@ -265,10 +301,12 @@ class ChangeUnet(pl.LightningModule):
         """
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
-        loss = self.loss(y_hat, y)
+        loss = self.loss(y_hat, y.float())
         # by default, the test and validation steps only log per *epoch*
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
+        if batch_idx == 0: # Only on batch 0 TODO : need random samples
+            self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='test')
         return {'test_loss': cast(Tensor, loss)}
 
     def test_epoch_end(self, outputs: Any) -> None:
