@@ -1,4 +1,4 @@
-"""Segmentation tasks."""
+"""Segmentation tasks"""
 
 # import warnings
 from functools import partial
@@ -150,7 +150,7 @@ class ChangeUnet(pl.LightningModule):
     def configure_activation(self, activation: str, dim=1) -> Callable[[Tensor], Tensor]:
         match activation:
             case 'softmax':
-                return partial(torch.softmax(dim=1))
+                return partial(torch.softmax, dim=1)
             case 'sigmoid':
                 return torch.sigmoid
             case _:
