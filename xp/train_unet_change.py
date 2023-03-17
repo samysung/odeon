@@ -62,7 +62,7 @@ path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
 accelerator = 'gpu' # 'cpu'
-max_epochs = 200
+max_epochs = 500
 check_val_every_n_epoch = 5
 def main():
     seed_everything(42, workers=True)
@@ -74,14 +74,14 @@ def main():
                                        filename=model_name+'epoch-{epoch}-loss-{val_bin_iou:.2f}',
                                        mode="max",
                                        monitor='val_bin_iou')
-    early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=40, check_finite=True)
+    early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=50, check_finite=True)
     #Faire un callback pour sauver les images
     callbacks = [lr_monitor, model_checkpoint, early_stop]
     logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log)
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs)
     trainer.fit(model=model, datamodule=input)
     trainer.validate(model=model, datamodule=input) # Where are stored the values ?
-    #trainer.test(model=model, datamodule=input) # Besoin de faire un vrai test set separé ! # a verifier cela n'a pas l'air d être le meme
+    trainer.test(model=model, datamodule=input)
     # Qualitative eval ?
 
 
