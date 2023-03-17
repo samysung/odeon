@@ -21,7 +21,7 @@ if not os.path.exists(root):
     root: str = '/home/dl/gonthier/data/'
 root_dir: str = os.path.join(root, 'gers/change/patches')
 fold_nb: int = 0
-fold: str = f'fold-{fold_nb}'
+fold: str = f'split-{fold_nb}'
 root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
 # The images here are not normalized between 0 and 1 should we do it ?
@@ -32,21 +32,21 @@ fit_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "
                                'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
                                'input_file': dataset,
                                'root_dir': root_dir
-              }
-val_dataset: str = os.path.join(root_dir, 'val_split_'+str(fold_nb)+'.geojson')
+              } # add transform for data augment
+val_dataset: str = os.path.join(root_fold, 'val_split_'+str(fold_nb)+'.geojson')
 val_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}},
                                'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
-                               'input_file': dataset,
+                               'input_file': val_dataset,
                                'root_dir': root_dir
               }
-test_dataset: str = os.path.join(root_dir, 'test_split_'+str(fold_nb)+'.geojson')
+test_dataset: str = os.path.join(root_fold, 'test_split_'+str(fold_nb)+'.geojson')
 test_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}},
                                'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
-                               'input_file': dataset,
+                               'input_file': test_dataset,
                                'root_dir': root_dir
               }
 
