@@ -1,4 +1,4 @@
-"""Segmentation tasks."""
+"""Segmentation tasks"""
 
 # import warnings
 from functools import partial
@@ -28,7 +28,7 @@ from odeon.models.core.models import ModelRegistry
 DataLoader.__module__ = "torch.utils.data"  # Sphinx bug
 
 
-@ModelRegistry.register_class(name='change_unet', aliases=['c_unet'])
+@ModelRegistry.register(name='change_unet', aliases=['c_unet'])
 class ChangeUnet(pl.LightningModule):
     """
 
@@ -145,7 +145,7 @@ class ChangeUnet(pl.LightningModule):
     def configure_activation(self, activation: str, dim=1) -> Callable[[Tensor], Tensor]:
         match activation:
             case 'softmax':
-                return partial(torch.softmax(dim=1))
+                return partial(torch.softmax, dim=1)
             case 'sigmoid':
                 return torch.sigmoid
             case _:
@@ -209,7 +209,6 @@ class ChangeUnet(pl.LightningModule):
         -------
 
         """
-        print(batch)
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
         loss = self.loss(y_hat, y.float())
@@ -265,7 +264,7 @@ class ChangeUnet(pl.LightningModule):
         """
         y_hat, y = self.step(batch=batch)
         y_hat_hard = y_hat > self.threshold
-        loss = self.loss(y_hat, y)
+        loss = self.loss(y_hat, y.float())
         # by default, the test and validation steps only log per *epoch*
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
