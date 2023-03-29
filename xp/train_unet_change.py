@@ -30,6 +30,7 @@ dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
 batch_size = 8
 transform = [A.RandomRotate90(p=0.5),
             A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5)], p=0.75)]
+transform_name = 'Rot_Flip'
 input_fields : Dict = {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}}
@@ -56,13 +57,16 @@ input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
 model_name = 'fc_siam_conc'
-model = ChangeUnet(model='fc_siam_conc', scheduler='ExponentialLR', lr=0.001)
+scheduler = 'ExponentialLR'
+lr = 0.001
+model = ChangeUnet(model=model_name, scheduler=scheduler, lr=lr)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
 accelerator = 'gpu' # 'cpu'
 max_epochs = 500
 check_val_every_n_epoch = 5
+model_tag = model_name + '_' + scheduler + '_lr'+str(lr) + '_'+transform_name
 def main():
     seed_everything(42, workers=True)
 
@@ -70,7 +74,7 @@ def main():
     # ou bien comme dans le papier de Rodrigo : scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, 0.95)
     model_checkpoint = ModelCheckpoint(dirpath=path_model_checkpoint,
                                        save_top_k=save_top_k_models,
-                                       filename=model_name+'epoch-{epoch}-loss-{val_bin_iou:.2f}',
+                                       filename=model_tag+'_epoch-{epoch}-loss-{val_bin_iou:.2f}',
                                        mode="max",
                                        monitor='val_bin_iou')
     early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=50, check_finite=True)
