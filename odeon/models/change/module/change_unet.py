@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 # from torch.nn.functional import one_hot
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.optim.lr_scheduler import ReduceLROnPlateau, ExponentialLR
 from torch.utils.data import DataLoader
 # from torchmetrics import Metric
 from torchmetrics import MetricCollection
@@ -44,6 +44,7 @@ class ChangeUnet(pl.LightningModule):
                  loss: str = 'bce',
                  lr: float = 0.0001,
                  threshold: float = 0.5,
+                 scheduler='ReduceLROnPlateau',
                  **kwargs: Any) -> None:
         """Initialize the LightningModule with a model and loss function
 
@@ -60,6 +61,7 @@ class ChangeUnet(pl.LightningModule):
         self.lr = lr
         self.activation: Callable[[Tensor], Tensor] = torch.sigmoid
         self.threshold: float = threshold
+        self.scheduler = scheduler
         """"
         if not isinstance(kwargs["ignore_index"], (int, type(None))):
             raise ValueError("ignore_index must be an int or None")
@@ -322,6 +324,22 @@ class ChangeUnet(pl.LightningModule):
         self.log_dict(self.test_metrics.compute())
         self.test_metrics.reset()
 
+    def get_lr_scheduler(self, optimizer):
+        if self.scheduler is None or self.scheduler=='ReduceLROnPlateau':
+            lr_scheduler = {
+                "scheduler": ReduceLROnPlateau(
+                    optimizer,
+                    patience=20,
+                ),
+                "monitor": "val_loss",
+            },
+        elif self.scheduler == 'ExponentialLR':
+            lr_scheduler = {"scheduler": ExponentialLR(optimizer, 0.95),
+                            "monitor": "val_loss",
+                            }
+
+        return lr_scheduler
+
     def configure_optimizers(self) -> Dict[str, Any]:
         """Initialize the optimizer and learning rate scheduler.
         Returns:
@@ -333,11 +351,5 @@ class ChangeUnet(pl.LightningModule):
         )
         return {
             "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": ReduceLROnPlateau(
-                    optimizer,
-                    patience=20,
-                ),
-                "monitor": "val_loss",
-            },
+            "lr_scheduler": self.get_lr_scheduler(optimizer)
         }

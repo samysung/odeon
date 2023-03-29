@@ -24,7 +24,6 @@ fold_nb: int = 0
 fold: str = f'split-{fold_nb}'
 root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
-# The images here are not normalized between 0 and 1 should we do it ?
 batch_size = 2
 fit_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
@@ -53,7 +52,7 @@ test_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": 
 input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
-model = ChangeUnet(model='fc_siam_conc')
+model = ChangeUnet(model='fc_siam_conc', scheduler='ExponentialLR')
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
