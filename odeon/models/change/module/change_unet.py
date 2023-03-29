@@ -166,7 +166,7 @@ class ChangeUnet(pl.LightningModule):
 
         return y_hat, y
 
-    def training_step(self, batch: Dict[str, Any], *args: Any, **kwargs: Any) -> Any:
+    def training_step(self, batch: Dict[str, Any], batch_idx: int, *args: Any, **kwargs: Any) -> Any:
         """
 
         Parameters
@@ -223,7 +223,7 @@ class ChangeUnet(pl.LightningModule):
         # `log_every_n_steps` is a parameter to the `Trainer` object
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.val_metrics(y_hat_hard, y)
-        if batch_idx == 0: # Only on batch 0 TODO : need random samples
+        if batch_idx == 0: # Only on batch 0 TODO : need random samples but still the same
             self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='val')
         return {'val_loss': cast(Tensor, loss)}
 
@@ -256,7 +256,7 @@ class ChangeUnet(pl.LightningModule):
             plt.xticks([])
             plt.yticks([])
             plt.grid(False)
-            img = list_images[i].cpu().permute(1, 2, 0)
+            img = list_images[i].detach().cpu().permute(1, 2, 0).numpy()
             plt.imshow(img, interpolation='nearest')
             plt.tight_layout()
 
