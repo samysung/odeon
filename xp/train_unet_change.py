@@ -81,7 +81,7 @@ def main():
     early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=50, check_finite=True)
     #Faire un callback pour sauver les images
     callbacks = [lr_monitor, model_checkpoint, early_stop]
-    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log)
+    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version=model_tag)
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs)
     trainer.fit(model=model, datamodule=input)
     trainer.validate(model=model, datamodule=input) # Where are stored the values ?

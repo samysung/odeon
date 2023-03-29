@@ -75,7 +75,7 @@ def main():
                                        mode="max",
                                        monitor='val_bin_iou')
     callbacks = [lr_monitor, model_checkpoint]
-    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log)
+    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version='test_exp2')
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs,
                       limit_train_batches=limit_train_batches, limit_val_batches=limit_val_batches,
                       limit_test_batches=limit_test_batches,
