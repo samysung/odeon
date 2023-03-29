@@ -347,7 +347,7 @@ class ChangeUnet(pl.LightningModule):
             https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html#configure-optimizers
         """
         optimizer = torch.optim.Adam(
-            self.model.parameters(), lr=self.lr
+            self.model.parameters(), lr=self.lr, weight_decay=1e-4
         )
         return {
             "optimizer": optimizer,

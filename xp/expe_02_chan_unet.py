@@ -54,7 +54,7 @@ test_params = {'input_fields': input_fields,
 input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
-model = ChangeUnet(model='fc_siam_conc', scheduler='ExponentialLR')
+model = ChangeUnet(model='fc_siam_conc', scheduler='ExponentialLR', lr=0.001)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 5
 path_model_log = ''
