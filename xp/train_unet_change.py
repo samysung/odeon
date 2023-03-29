@@ -27,15 +27,15 @@ fold: str = f'split-{fold_nb}'
 root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
 batch_size = 8
-# tr.Compose([RandomFlip(), RandomRot()])
+transform = [A.RandomRotate90(p=0.5),
+            A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5)], p=0.75)]
 fit_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}},
                                'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
                                'input_file': dataset,
                                'root_dir': root_dir,
-
-              # param transform
+                               'transform': transform
               }
 val_dataset: str = os.path.join(root_fold, 'val_split_'+str(fold_nb)+'.geojson')
 val_params = {'input_fields': {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
