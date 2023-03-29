@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 # from torch.nn.functional import one_hot
-from torch.optim.lr_scheduler import ReduceLROnPlateau, ExponentialLR
+from torch.optim.lr_scheduler import ReduceLROnPlateau, ExponentialLR, CosineAnnealingLR
 from torch.utils.data import DataLoader
 # from torchmetrics import Metric
 from torchmetrics import MetricCollection
@@ -337,6 +337,14 @@ class ChangeUnet(pl.LightningModule):
             lr_scheduler = {"scheduler": ExponentialLR(optimizer, 0.95),
                             "monitor": "val_loss",
                             }
+        elif self.scheduler == 'CosineAnnealingLR':
+            lr_scheduler = {"scheduler": CosineAnnealingLR(optimizer, T_max=10),
+                            "monitor": "val_loss",
+                            }
+        else:
+            raise ValueError(
+                f"LR Scheduler '{self.scheduler}' is unknown."
+            )
 
         return lr_scheduler
 
