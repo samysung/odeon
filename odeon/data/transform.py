@@ -21,7 +21,7 @@ class AlbuTransform:
         self._input_fields = input_fields
         self._pipe: List = list() if pipe is None else build_transform(pipe)
         if len(self._pipe) > 0:
-            assert [int(isinstance(p, A.BasicTransform)) for p in self._pipe] == len(self._pipe)
+            assert len([int(isinstance(p, A.BasicTransform)) for p in self._pipe]) == len(self._pipe)
         if to_tensor:
             self._pipe.append(ToTensorCustom())
         self._additional_targets: Dict = dict()
