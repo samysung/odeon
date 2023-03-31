@@ -61,7 +61,7 @@ input = Input(fit_params=fit_params,
 model_name = 'fc_siam_conc'
 scheduler = 'ExponentialLR'
 lr = 0.001
-model_params: Dict = {'decoder_use_batchnorm': True, 'activation': "sigmoid", 'encoder_weights': "imagenet"}
+model_params: Dict = {'decoder_use_batchnorm': True, 'activation': "sigmoid", 'encoder_weights': None}
 model = ChangeUnet(model=model_name, scheduler=scheduler, lr=lr, model_params=model_params)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 3
@@ -71,7 +71,7 @@ max_epochs = 500
 check_val_every_n_epoch = 10
 dt = datetime.now()# Getting the current date and time
 time_tag = str(dt.month) + '-' + str(dt.day) + '-' + str(dt.hour) + '-' + str(dt.minute)
-model_tag = time_tag + '_' + model_name + '_' + scheduler + '_lr'+str(lr) + '_'+transform_name
+model_tag = time_tag + '_' + model_name + '_' + scheduler + '_lr'+str(lr) + '_'+transform_name+'_None'
 def main():
     seed_everything(42, workers=True)
 
