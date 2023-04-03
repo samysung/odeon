@@ -59,10 +59,11 @@ input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
 model_name = 'fc_siam_conc'
-scheduler = 'ExponentialLR'
+scheduler = 'ReduceLROnPlateau'
 lr = 0.001
-model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': None}
-model = ChangeUnet(model=model_name, scheduler=scheduler, lr=lr, model_params=model_params)
+model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': None, 'dropout': 0.2} # 0.2
+weight = [10]
+model = ChangeUnet(model=model_name, scheduler=scheduler, lr=lr, model_params=model_params,  weight=weight)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 3
 path_model_log = ''
