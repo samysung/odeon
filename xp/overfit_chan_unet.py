@@ -53,10 +53,16 @@ test_params = {'input_fields': input_fields,
 input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
+
+
+# Les parametres suivants commence a overfitter :
+# model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': "imagenet", 'dropout': None} # 0.2
+# weight = None
+# model = ChangeUnet(model='fc_siam_conc', scheduler='ReduceLROnPlateau', lr=0.001, model_params=model_params,  weight=weight)
+
 model_params: Dict = {'decoder_use_batchnorm': True, 'activation': "sigmoid", 'encoder_weights': "imagenet"}
-model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': None, 'dropout': None} # 0.2
-weight = [10] # Weight of the positive class : ie change class ie minority class in our case  : [1,10]
-weight = None # Weight of the positive class : ie change class ie minority class in our case  : [1,10]
+model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': None, 'dropout': 0.2} # 0.2
+weight = [10]
 # use LR step on 100 epochs
 model = ChangeUnet(model='fc_siam_conc', scheduler='ReduceLROnPlateau', lr=0.001, model_params=model_params,  weight=weight)#,weight=weight)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
@@ -78,7 +84,7 @@ def main():
                                        mode="max",
                                        monitor='val_bin_iou')
     callbacks = [lr_monitor, model_checkpoint]
-    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version='overfit')
+    logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version='overfit3')
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs,
                       limit_train_batches=limit_train_batches, limit_val_batches=limit_val_batches,
                       limit_test_batches=limit_test_batches)
