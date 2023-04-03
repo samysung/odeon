@@ -189,6 +189,10 @@ class ChangeUnet(pl.LightningModule):
         # `log_every_n_steps` is a parameter to the `Trainer` object
         self.log("train_loss", loss, on_step=True, on_epoch=False)
         self.train_metrics(y_hat_hard, y)
+        debug = False
+        if debug:
+            if batch_idx < 6: # Only on batch 0 TODO : need random samples but still the same
+                self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='train')
         return {'loss': loss}
 
     def training_epoch_end(self, outputs: Any) -> None:
