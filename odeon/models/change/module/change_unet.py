@@ -2,7 +2,7 @@
 
 # import warnings
 from functools import partial
-from typing import Any, Callable, Dict, Optional, Tuple, cast
+from typing import Any, Callable, Dict, Optional, Tuple, cast, List
 
 # import matplotlib.pyplot as plt
 import pytorch_lightning as pl
@@ -45,6 +45,7 @@ class ChangeUnet(pl.LightningModule):
                  lr: float = 0.0001,
                  threshold: float = 0.5,
                  scheduler='ReduceLROnPlateau',
+                 weight: Optional[List] = None,
                  **kwargs: Any) -> None:
         """Initialize the LightningModule with a model and loss function
 
@@ -53,7 +54,7 @@ class ChangeUnet(pl.LightningModule):
         """
         super().__init__()
         self.model = self.configure_model(model=model, model_params=model_params)
-        self.loss = self.configure_loss(loss=loss)
+        self.loss = self.configure_loss(loss=loss, weight=weight)
         self.train_metrics, self.val_metrics, self.test_metrics = self.configure_metrics(metric_params={})
         # Creates `self.hparams` from kwargs
         self.save_hyperparameters()  # type: ignore[operator]
@@ -101,10 +102,12 @@ class ChangeUnet(pl.LightningModule):
             )
 
     def configure_loss(self,
-                       loss: str) -> nn.Module:
+                       loss: str, weight: Optional[List] =  None) -> nn.Module:
+        if weight is not None:
+            weight = torch.Tensor(weight)
         if loss == "bce":
             # ignore_value = -1000 if self.ignore_index is None else self.ignore_index
-            return nn.BCEWithLogitsLoss(reduction='mean')
+            return nn.BCEWithLogitsLoss(reduction='mean', pos_weight=weight) # This loss combines a Sigmoid layer and the BCELoss in one single class.
         elif loss == "focal":
             return smp.losses.FocalLoss("binary", normalized=True)
         else:
@@ -325,14 +328,11 @@ class ChangeUnet(pl.LightningModule):
         self.test_metrics.reset()
 
     def get_lr_scheduler(self, optimizer):
-        if self.scheduler is None or self.scheduler=='ReduceLROnPlateau':
+        if self.scheduler is None or self.scheduler == 'ReduceLROnPlateau':
             lr_scheduler = {
-                "scheduler": ReduceLROnPlateau(
-                    optimizer,
-                    patience=20,
-                ),
+                "scheduler": ReduceLROnPlateau(optimizer, patience=20),
                 "monitor": "val_loss",
-            },
+            }
         elif self.scheduler == 'ExponentialLR':
             lr_scheduler = {"scheduler": ExponentialLR(optimizer, 0.95),
                             "monitor": "val_loss",
