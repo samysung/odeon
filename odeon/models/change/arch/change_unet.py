@@ -35,6 +35,7 @@ class FCSiamConc(SegmentationModel):  # type: ignore[misc]
         in_channels: int = 3,
         classes: int = 1,
         activation: Optional[Union[str, Callable[[Tensor], Tensor]]] = None,
+        dropout: Optional[float] = None,
     ):
         """Initialize a new FCSiamConc model.
         Args:
@@ -67,6 +68,7 @@ class FCSiamConc(SegmentationModel):  # type: ignore[misc]
                 n layer. Available options are **"sigmoid"**, **"softmax"**,
                 **"logsoftmax"**, **"tanh"**, **"identity"**, **callable**
                 and **None**. Default is **None**
+            dropout : dropout factor in [0, 1). Default is **None**
         """
         super().__init__()
 
@@ -75,7 +77,8 @@ class FCSiamConc(SegmentationModel):  # type: ignore[misc]
             encoder_name,
             in_channels=in_channels,
             depth=encoder_depth,
-            weights=encoder_weights)
+            weights=encoder_weights,
+            dropout=dropout)
         encoder_out_channels = [c * 2 for c in self.encoder.out_channels[1:]]
         encoder_out_channels.insert(0, self.encoder.out_channels[0])
         try:
