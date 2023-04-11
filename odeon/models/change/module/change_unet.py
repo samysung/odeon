@@ -60,7 +60,7 @@ class ChangeUnet(pl.LightningModule):
         self.save_hyperparameters()  # type: ignore[operator]
         self.hyperparams = cast(Dict[str, Any], self.hparams)
         self.lr = lr
-        self.activation: Callable[[Tensor], Tensor] = torch.sigmoid
+        self.activation: Callable[[Tensor], Tensor] = torch.sigmoid # Warning if you use something else than bce for this model !!!
         self.threshold: float = threshold
         self.scheduler = scheduler
         """"
@@ -107,6 +107,7 @@ class ChangeUnet(pl.LightningModule):
             weight = torch.Tensor(weight)
         if loss == "bce":
             # ignore_value = -1000 if self.ignore_index is None else self.ignore_index
+            self.need_apply_sigmoid = True
             return nn.BCEWithLogitsLoss(reduction='mean', pos_weight=weight) # This loss combines a Sigmoid layer and the BCELoss in one single class.
         elif loss == "focal":
             return smp.losses.FocalLoss("binary", normalized=True)
@@ -192,6 +193,7 @@ class ChangeUnet(pl.LightningModule):
         debug = False
         if debug:
             if batch_idx < 6: # Only on batch 0 TODO : need random samples but still the same
+                y_hat = self.activation(y_hat)
                 self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='train')
         return {'loss': loss}
 
@@ -231,6 +233,7 @@ class ChangeUnet(pl.LightningModule):
         self.log("val_loss", loss, on_step=False, on_epoch=True)
         self.val_metrics(y_hat_hard, y)
         if batch_idx == 0: # Only on batch 0 TODO : need random samples but still the same
+            y_hat = self.activation(y_hat)
             self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='val')
         return {'val_loss': cast(Tensor, loss)}
 
@@ -315,6 +318,7 @@ class ChangeUnet(pl.LightningModule):
         self.log("test_loss", loss, on_step=False, on_epoch=True)
         self.test_metrics(y_hat_hard, y)
         if batch_idx == 0: # Only on batch 0 TODO : need random samples
+            y_hat = self.activation(y_hat)
             self.log_tb_images((batch['T0'], batch['T1'], y, y_hat, [batch_idx]*len(y)), step=self.global_step, set='test')
         return {'test_loss': cast(Tensor, loss)}
 
