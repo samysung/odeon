@@ -52,7 +52,7 @@ def get_ratio_classes(fold_nb: int = 0):
             total_pxls[k] = np.sum(new_lbl == k) + total_pxls[k]
         list_done += [change_path]
 
-    print(total_pxls)
+    print("Nombre total de pixels :",total_pxls)
 
     no_total_pxls = np.sum(total_pxls)
     my_freqs  = [total_pxls[k] / no_total_pxls for k in range(0, n_classes)]
