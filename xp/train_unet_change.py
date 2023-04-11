@@ -61,9 +61,9 @@ input = Input(fit_params=fit_params,
 model_name = 'fc_siam_conc'
 scheduler = 'ReduceLROnPlateau'
 lr = 0.001
-model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': None, 'dropout': 0.2} # 0.2
+model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': "imagenet", 'dropout': 0.2} # 0.2
 weight = [10]
-model = ChangeUnet(model=model_name, scheduler=scheduler, lr=lr, model_params=model_params,  weight=weight)
+model = ChangeUnet(model=model_name , scheduler=scheduler, lr=lr, model_params=model_params,  weight=weight)
 path_model_checkpoint = 'ckpt' # Need to specify by run, no ?
 save_top_k_models = 3
 path_model_log = ''
@@ -71,8 +71,8 @@ accelerator = 'gpu' # 'cpu'
 max_epochs = 500
 check_val_every_n_epoch = 10
 dt = datetime.now()# Getting the current date and time
-time_tag = str(dt.month) + '-' + str(dt.day) + '-' + str(dt.hour) + '-' + str(dt.minute)
-model_tag = time_tag + '_' + model_name + '_' + scheduler + '_lr'+str(lr) + '_'+transform_name+'_None_None'
+time_tag = str(dt.month) + '_' + str(dt.day) + '_' + str(dt.hour) + '_' + str(dt.minute)
+model_tag = time_tag + '_' + model_name + '_' + scheduler + '_lr'+str(lr) + '_'+transform_name+'_ImageNet_None'
 def main():
     seed_everything(42, workers=True)
 
