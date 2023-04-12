@@ -59,7 +59,7 @@ input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
 model_name = 'fc_siam_conc'
-scheduler = 'ReduceLROnPlateau'
+scheduler = 'ExponentialLR'
 lr = 0.001
 model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': "imagenet", 'dropout': 0.2} # 0.2
 weight = [10]
@@ -83,7 +83,7 @@ def main():
                                        filename=model_tag+'_epoch-{epoch}-loss-{val_bin_iou:.2f}',
                                        mode="max",
                                        monitor='val_bin_iou')
-    early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=50, check_finite=True)
+    early_stop = EarlyStopping(monitor="val_bin_iou", mode="max", patience=100, check_finite=True)
     #Faire un callback pour sauver les images
     callbacks = [lr_monitor, model_checkpoint, early_stop]
     logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version=model_tag)
