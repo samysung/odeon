@@ -41,8 +41,9 @@ transform = [A.RandomSizedCrop((512-100, 512), 512, 512, p=0.5),
              A.Blur(p=0.1),
              A.GaussNoise(p=0.1),
              A.ColorJitter(),
-             A.MaskDropout((10,15), p=0.2),
              A.Cutout(p=0.2)]
+# MaskDropout ne fonctionne pas
+# https://albumentations.ai/docs/examples/showcase/
 transform_name = 'Alot'
 input_fields : Dict = {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
