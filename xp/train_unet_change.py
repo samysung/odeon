@@ -31,8 +31,19 @@ root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
 batch_size = 8
 transform = [A.RandomRotate90(p=0.5),
-            A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5)], p=0.75)]
-transform_name = 'Rot_Flip'
+            A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5), A.Transpose(p=0.5)], p=0.75),
+            A.RandomBrightnessContrast(p=0.5)
+             ]
+transform = [A.RandomSizedCrop((512-100, 512), 512, 512, p=0.5),
+             A.ShiftScaleRotate(p=0.5),
+             A.Flip(p=0.5),
+             A.RGBShift(p=0.5),
+             A.Blur(p=0.1),
+             A.GaussNoise(p=0.1),
+             A.ColorJitter(),
+             A.MaskDropout((10,15), p=0.2),
+             A.Cutout(p=0.2)]
+transform_name = 'Alot'
 input_fields : Dict = {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}}
@@ -59,7 +70,7 @@ input = Input(fit_params=fit_params,
               validate_params=val_params,
               test_params=test_params)
 model_name = 'fc_siam_conc'
-scheduler = 'ExponentialLR'
+scheduler = 'ReduceLROnPlateau'
 lr = 0.001
 model_params: Dict = {'decoder_use_batchnorm': True, 'activation': None, 'encoder_weights': "imagenet", 'dropout': 0.2} # 0.2
 weight = [10]
@@ -93,6 +104,10 @@ def main():
     trainer.test(model=model, datamodule=input)
     # Qualitative eval ?
 
+# Autre chose à tester :
+# - 5 channels
+# Random change between To and T1
+# Random zoom
 
 if __name__ == '__main__':
 
