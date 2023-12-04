@@ -17,36 +17,36 @@ from odeon.models.change.module.change_unet import ChangeUnet
 
 #root: str = '/media/HP-2007S005-data'
 #root_dir: str = os.path.join(root, 'gers/change_dataset/patches')
-root: str = '/home/NGonthier/Documents/Detection_changement/data/'
-if not os.path.exists(root):
-    root: str = '/home/dl/gonthier/data/'
+root: str = '/mnt/stores/store-DAI/datasrc/dchan'
+
 root_dir: str = os.path.join(root, 'gers/change/patches')
 fold_nb: int = 0
 fold: str = f'split-{fold_nb}'
 root_fold: str = os.path.join(root_dir, fold)
 dataset: str = os.path.join(root_fold, 'train_split_'+str(fold_nb)+'.geojson')
-batch_size = 2
-input_fields : Dict = {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
+train_batch_size = 8
+batch_size = 16
+input_fields: Dict = {"T0": {"name": "T0", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "T1": {"name": "T1", "type": "raster", "dtype": "uint8", "band_indices": [1, 2, 3]},
                                "mask": {"name": "change", "type": "mask", "encoding": "integer"}}
 
 transform = [A.RandomRotate90(p=0.5),
             A.OneOf([A.HorizontalFlip(p=0.5), A.VerticalFlip(p=0.5)], p=0.75)]
 fit_params = {'input_fields': input_fields,
-                               'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
+                               'dataloader_options' : {"batch_size": train_batch_size, "num_workers": 32, "shuffle": True},
                                'input_file': dataset,
                                'root_dir': root_dir,
                                'transform': transform
               } # add transform for data augment
 val_dataset: str = os.path.join(root_fold, 'val_split_'+str(fold_nb)+'.geojson')
 val_params = {'input_fields': input_fields,
-                               'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
+                               'dataloader_options' : {"batch_size": batch_size, "num_workers": 32, "shuffle": False},
                                'input_file': val_dataset,
                                'root_dir': root_dir
               }
 test_dataset: str = os.path.join(root_fold, 'test_split_'+str(fold_nb)+'.geojson')
 test_params = {'input_fields': input_fields,
-                               'dataloader_options' : {"batch_size": batch_size, "num_workers": 8},
+                               'dataloader_options' : {"batch_size": batch_size, "num_workers": 32, "shuffle": False},
                                'input_file': test_dataset,
                                'root_dir': root_dir
               }
@@ -62,9 +62,10 @@ accelerator = 'gpu' # 'cpu'
 limit_train_batches = 10
 limit_val_batches = 10
 limit_test_batches = 10
-max_epochs = 2
+max_epochs = 100
 check_val_every_n_epoch = 5
 log_every_n_steps = 5
+gpus = [0]
 def main():
     seed_everything(42, workers=True)
 
@@ -77,9 +78,7 @@ def main():
     callbacks = [lr_monitor, model_checkpoint]
     logger = pl_loggers.TensorBoardLogger(save_dir=path_model_log, version='test_exp2')
     trainer = Trainer(logger=logger, callbacks=callbacks, accelerator=accelerator, max_epochs=max_epochs,
-                      limit_train_batches=limit_train_batches, limit_val_batches=limit_val_batches,
-                      limit_test_batches=limit_test_batches,
-                      log_every_n_steps=log_every_n_steps)
+                      log_every_n_steps=log_every_n_steps,gpus=gpus)
     trainer.fit(model=model, datamodule=input)
     trainer.validate(model=model, datamodule=input) # Where are stored the values ?
     trainer.test(model=model, datamodule=input)

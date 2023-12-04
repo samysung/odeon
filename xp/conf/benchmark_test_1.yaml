@@ -1,0 +1,10 @@
+store: store-FLECHETTE
+store_dir: /mnt/stores/SMLPRIINFSAP1
+stage: 'fit'
+n_cycle: 20
+dataloader_options:
+   batch_size: 16
+   num_workers: 96
+   shuffle: True
+cache_dataset: false
+debug: true
