@@ -4,12 +4,13 @@ from typing import Dict, Any, Tuple
 from logging import getLogger
 from resource import getrusage as resource_usage, RUSAGE_SELF
 from time import time as timestamp
+
 import json
-
-
-from tqdm import tqdm
 from multiprocessing import cpu_count
+from tqdm import tqdm
 from jsonargparse import ArgumentParser, CLI, Namespace, SignatureArguments
+from pytorch_lightning
+from pytorch_lightning.profiler import SimpleProfiler
 
 # from odeon import Input
 from odeon.core.types import STAGES_OR_VALUE
@@ -43,7 +44,7 @@ class BenchmarkStores:
     cache_dataset: bool = True
     debug: bool = False
     cpu_count: None | int = None
-
+    profiler: SimpleProfiler | None = None
     def __post_init__(self):
         self.root_dir = str(Path(self.store_dir) / "gers/change_dataset/patches")
         self.input_file = str(Path(self.root_dir) / "split-0/train_split_0.geojson")
